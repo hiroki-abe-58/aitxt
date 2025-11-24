@@ -2,7 +2,10 @@ module github.com/hiroki-abe-58/aitxt
 
 go 1.23
 
-require github.com/spf13/cobra v1.8.0
+require (
+	github.com/sashabaranov/go-openai v1.41.2
+	github.com/spf13/cobra v1.8.0
+)
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
