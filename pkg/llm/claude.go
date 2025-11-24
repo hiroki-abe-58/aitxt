@@ -10,7 +10,7 @@ import (
 
 // ClaudeClient implements the Client interface for Anthropic Claude
 type ClaudeClient struct {
-	client *anthropic.Client
+	client anthropic.Client
 	config *Config
 }
 
@@ -40,17 +40,17 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 	}
 
 	params := anthropic.MessageNewParams{
-		Model:     anthropic.F(c.config.Model),
-		MaxTokens: anthropic.F(maxTokens),
-		Messages: anthropic.F([]anthropic.MessageParam{
+		Model:     c.config.Model,
+		MaxTokens: maxTokens,
+		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
-		}),
+		},
 	}
 
 	if req.SystemMsg != "" {
-		params.System = anthropic.F([]anthropic.TextBlockParam{
+		params.System = []anthropic.TextBlockParam{
 			anthropic.NewTextBlock(req.SystemMsg),
-		})
+		}
 	}
 
 	message, err := c.client.Messages.New(ctx, params)
@@ -60,7 +60,7 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 
 	var text string
 	for _, block := range message.Content {
-		if block.Type == anthropic.ContentBlockTypeText {
+		if block.Type == "text" {
 			text += block.Text
 		}
 	}
@@ -82,17 +82,17 @@ func (c *ClaudeClient) Stream(ctx context.Context, req *Request, callback func(c
 	}
 
 	params := anthropic.MessageNewParams{
-		Model:     anthropic.F(c.config.Model),
-		MaxTokens: anthropic.F(maxTokens),
-		Messages: anthropic.F([]anthropic.MessageParam{
+		Model:     c.config.Model,
+		MaxTokens: maxTokens,
+		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
-		}),
+		},
 	}
 
 	if req.SystemMsg != "" {
-		params.System = anthropic.F([]anthropic.TextBlockParam{
+		params.System = []anthropic.TextBlockParam{
 			anthropic.NewTextBlock(req.SystemMsg),
-		})
+		}
 	}
 
 	stream := c.client.Messages.NewStreaming(ctx, params)
