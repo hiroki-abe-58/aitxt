@@ -32,13 +32,10 @@ func (f *Factory) CreateClient(provider Provider) (Client, error) {
 
 	switch provider {
 	case ProviderOpenAI:
-		// Will be implemented in next PR
-		return nil, fmt.Errorf("OpenAI client not yet implemented")
+		return NewOpenAIClient(config)
 	case ProviderClaude:
-		// Will be implemented in next PR
 		return nil, fmt.Errorf("Claude client not yet implemented")
 	case ProviderGemini:
-		// Will be implemented in next PR
 		return nil, fmt.Errorf("Gemini client not yet implemented")
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrInvalidProvider, provider)
