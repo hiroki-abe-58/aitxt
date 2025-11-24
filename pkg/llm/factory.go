@@ -34,7 +34,7 @@ func (f *Factory) CreateClient(provider Provider) (Client, error) {
 	case ProviderOpenAI:
 		return NewOpenAIClient(config)
 	case ProviderClaude:
-		return nil, fmt.Errorf("Claude client not yet implemented")
+		return NewClaudeClient(config)
 	case ProviderGemini:
 		return nil, fmt.Errorf("Gemini client not yet implemented")
 	default:
