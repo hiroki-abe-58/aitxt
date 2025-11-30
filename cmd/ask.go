@@ -10,6 +10,7 @@ import (
 
 	"github.com/hiroki-abe-58/aitxt/pkg/config"
 	"github.com/hiroki-abe-58/aitxt/pkg/llm"
+	"github.com/hiroki-abe-58/aitxt/pkg/output"
 	"github.com/hiroki-abe-58/aitxt/pkg/progress"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +22,7 @@ var (
 	askSystem      string
 	askTemperature float64
 	askNoProgress  bool
+	askOutput      string
 )
 
 var askCmd = &cobra.Command{
@@ -31,13 +33,16 @@ var askCmd = &cobra.Command{
 A simple and versatile command for general AI interactions.
 Supports context from files or stdin.
 
+Output formats: text (default), json, yaml
+
 Examples:
   aitxt ask "What is the capital of France?"
   aitxt ask "Explain quantum computing" --lang ja
   aitxt ask "Summarize this" < document.txt
   cat error.log | aitxt ask "What's wrong here?"
   aitxt ask "Write a haiku about coding" --stream
-  aitxt ask "Be creative" --temperature 1.5`,
+  aitxt ask "Be creative" --temperature 1.5
+  aitxt ask "Hello" --output json`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runAsk,
 }
@@ -51,12 +56,18 @@ func init() {
 	askCmd.Flags().StringVarP(&askSystem, "system", "S", "", "Custom system prompt")
 	askCmd.Flags().Float64VarP(&askTemperature, "temperature", "t", 0.7, "Temperature (0.0-2.0, higher = more creative)")
 	askCmd.Flags().BoolVar(&askNoProgress, "no-progress", false, "Disable progress spinner")
+	askCmd.Flags().StringVarP(&askOutput, "output", "o", "text", "Output format (text, json, yaml)")
 }
 
 func runAsk(cmd *cobra.Command, args []string) error {
+	formatter := output.NewFormatter(askOutput)
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
+		if formatter.IsStructured() {
+			return formatter.Print(output.ErrorResponse("", fmt.Errorf("failed to load config: %w", err)))
+		}
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
@@ -75,6 +86,9 @@ func runAsk(cmd *cobra.Command, args []string) error {
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		data, err := io.ReadAll(os.Stdin)
 		if err != nil {
+			if formatter.IsStructured() {
+				return formatter.Print(output.ErrorResponse(string(provider), err))
+			}
 			return fmt.Errorf("failed to read stdin: %w", err)
 		}
 		stdinContent = strings.TrimSpace(string(data))
@@ -87,28 +101,39 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		question = stdinContent
 		stdinContent = ""
 	} else {
-		return fmt.Errorf("no question provided. Usage: aitxt ask \"your question\"")
+		err := fmt.Errorf("no question provided. Usage: aitxt ask \"your question\"")
+		if formatter.IsStructured() {
+			return formatter.Print(output.ErrorResponse(string(provider), err))
+		}
+		return err
 	}
 
-	// Create LLM client with progress spinner
+	// Create LLM client
+	llmConfig, err := cfg.ToLLMConfig(provider)
+	if err != nil {
+		if formatter.IsStructured() {
+			return formatter.Print(output.ErrorResponse(string(provider), err))
+		}
+		return err
+	}
+
+	factory := llm.NewFactory()
+	if err := factory.RegisterConfig(llmConfig); err != nil {
+		if formatter.IsStructured() {
+			return formatter.Print(output.ErrorResponse(string(provider), err))
+		}
+		return fmt.Errorf("failed to register config: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
 	var client llm.Client
-	if !askNoProgress && !askStream {
+	showSpinner := !askNoProgress && !askStream && !formatter.IsStructured()
+
+	if showSpinner {
 		spinner := progress.NewSpinner(fmt.Sprintf("Connecting to %s...", provider))
 		spinner.Start()
-
-		llmConfig, err := cfg.ToLLMConfig(provider)
-		if err != nil {
-			spinner.Error("Failed to load config")
-			return err
-		}
-
-		factory := llm.NewFactory()
-		if err := factory.RegisterConfig(llmConfig); err != nil {
-			spinner.Error("Failed to register config")
-			return fmt.Errorf("failed to register config: %w", err)
-		}
-
-		ctx := context.Background()
 		client, err = factory.CreateClientWithContext(ctx, provider)
 		if err != nil {
 			spinner.Error("Failed to create client")
@@ -116,19 +141,11 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		}
 		spinner.Stop()
 	} else {
-		llmConfig, err := cfg.ToLLMConfig(provider)
-		if err != nil {
-			return err
-		}
-
-		factory := llm.NewFactory()
-		if err := factory.RegisterConfig(llmConfig); err != nil {
-			return fmt.Errorf("failed to register config: %w", err)
-		}
-
-		ctx := context.Background()
 		client, err = factory.CreateClientWithContext(ctx, provider)
 		if err != nil {
+			if formatter.IsStructured() {
+				return formatter.Print(output.ErrorResponse(string(provider), err))
+			}
 			return fmt.Errorf("failed to create client: %w", err)
 		}
 	}
@@ -156,42 +173,46 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		Temperature: askTemperature,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
-
 	// Generate response
 	if askStream {
+		if formatter.IsStructured() {
+			return fmt.Errorf("streaming not supported with JSON/YAML output")
+		}
 		err = client.Stream(ctx, req, func(chunk string) error {
 			fmt.Print(chunk)
 			return nil
 		})
 		fmt.Println()
-	} else {
-		var resp *llm.Response
-		if !askNoProgress {
-			spinner := progress.NewSpinner("Thinking...")
-			spinner.Start()
-			resp, err = client.Generate(ctx, req)
-			if err != nil {
-				spinner.Error("Failed to generate response")
-				return fmt.Errorf("failed to get response: %w", err)
-			}
-			spinner.Stop()
-		} else {
-			resp, err = client.Generate(ctx, req)
-			if err != nil {
-				return fmt.Errorf("failed to get response: %w", err)
-			}
+		return err
+	}
+
+	var resp *llm.Response
+	if showSpinner {
+		spinner := progress.NewSpinner("Thinking...")
+		spinner.Start()
+		resp, err = client.Generate(ctx, req)
+		if err != nil {
+			spinner.Error("Failed to generate response")
+			return fmt.Errorf("failed to get response: %w", err)
 		}
-		fmt.Println(resp.Text)
-		fmt.Printf("\n[%s | Tokens: %d]\n", provider, resp.TokensUsed)
+		spinner.Stop()
+	} else {
+		resp, err = client.Generate(ctx, req)
+		if err != nil {
+			if formatter.IsStructured() {
+				return formatter.Print(output.ErrorResponse(string(provider), err))
+			}
+			return fmt.Errorf("failed to get response: %w", err)
+		}
 	}
 
-	if err != nil {
-		return fmt.Errorf("failed to get response: %w", err)
-	}
-
-	return nil
+	// Output response
+	return formatter.PrintResponse(output.SuccessResponse(
+		string(provider),
+		resp.Model,
+		resp.Text,
+		resp.TokensUsed,
+	))
 }
 
 func getAskLangPrompt(lang string) string {
