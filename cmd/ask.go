@@ -10,6 +10,7 @@ import (
 
 	"github.com/hiroki-abe-58/aitxt/pkg/config"
 	"github.com/hiroki-abe-58/aitxt/pkg/llm"
+	"github.com/hiroki-abe-58/aitxt/pkg/progress"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ var (
 	askLang        string
 	askSystem      string
 	askTemperature float64
+	askNoProgress  bool
 )
 
 var askCmd = &cobra.Command{
@@ -48,6 +50,7 @@ func init() {
 	askCmd.Flags().StringVarP(&askLang, "lang", "l", "", "Response language (en, ja, zh, ko, th)")
 	askCmd.Flags().StringVarP(&askSystem, "system", "S", "", "Custom system prompt")
 	askCmd.Flags().Float64VarP(&askTemperature, "temperature", "t", 0.7, "Temperature (0.0-2.0, higher = more creative)")
+	askCmd.Flags().BoolVar(&askNoProgress, "no-progress", false, "Disable progress spinner")
 }
 
 func runAsk(cmd *cobra.Command, args []string) error {
@@ -87,23 +90,47 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no question provided. Usage: aitxt ask \"your question\"")
 	}
 
-	// Create LLM client
-	llmConfig, err := cfg.ToLLMConfig(provider)
-	if err != nil {
-		return err
-	}
+	// Create LLM client with progress spinner
+	var client llm.Client
+	if !askNoProgress && !askStream {
+		spinner := progress.NewSpinner(fmt.Sprintf("Connecting to %s...", provider))
+		spinner.Start()
 
-	factory := llm.NewFactory()
-	if err := factory.RegisterConfig(llmConfig); err != nil {
-		return fmt.Errorf("failed to register config: %w", err)
-	}
+		llmConfig, err := cfg.ToLLMConfig(provider)
+		if err != nil {
+			spinner.Error("Failed to load config")
+			return err
+		}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
+		factory := llm.NewFactory()
+		if err := factory.RegisterConfig(llmConfig); err != nil {
+			spinner.Error("Failed to register config")
+			return fmt.Errorf("failed to register config: %w", err)
+		}
 
-	client, err := factory.CreateClientWithContext(ctx, provider)
-	if err != nil {
-		return fmt.Errorf("failed to create client: %w", err)
+		ctx := context.Background()
+		client, err = factory.CreateClientWithContext(ctx, provider)
+		if err != nil {
+			spinner.Error("Failed to create client")
+			return fmt.Errorf("failed to create client: %w", err)
+		}
+		spinner.Stop()
+	} else {
+		llmConfig, err := cfg.ToLLMConfig(provider)
+		if err != nil {
+			return err
+		}
+
+		factory := llm.NewFactory()
+		if err := factory.RegisterConfig(llmConfig); err != nil {
+			return fmt.Errorf("failed to register config: %w", err)
+		}
+
+		ctx := context.Background()
+		client, err = factory.CreateClientWithContext(ctx, provider)
+		if err != nil {
+			return fmt.Errorf("failed to create client: %w", err)
+		}
 	}
 
 	// Build prompt
@@ -129,6 +156,9 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		Temperature: askTemperature,
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
 	// Generate response
 	if askStream {
 		err = client.Stream(ctx, req, func(chunk string) error {
@@ -137,9 +167,21 @@ func runAsk(cmd *cobra.Command, args []string) error {
 		})
 		fmt.Println()
 	} else {
-		resp, err := client.Generate(ctx, req)
-		if err != nil {
-			return fmt.Errorf("failed to get response: %w", err)
+		var resp *llm.Response
+		if !askNoProgress {
+			spinner := progress.NewSpinner("Thinking...")
+			spinner.Start()
+			resp, err = client.Generate(ctx, req)
+			if err != nil {
+				spinner.Error("Failed to generate response")
+				return fmt.Errorf("failed to get response: %w", err)
+			}
+			spinner.Stop()
+		} else {
+			resp, err = client.Generate(ctx, req)
+			if err != nil {
+				return fmt.Errorf("failed to get response: %w", err)
+			}
 		}
 		fmt.Println(resp.Text)
 		fmt.Printf("\n[%s | Tokens: %d]\n", provider, resp.TokensUsed)
