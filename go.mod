@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/anthropics/anthropic-sdk-go v1.18.1
 	github.com/briandowns/spinner v1.23.2
+	github.com/chzyer/readline v1.5.1
 	github.com/google/generative-ai-go v0.20.1
 	github.com/sashabaranov/go-openai v1.41.2
 	github.com/spf13/cobra v1.8.0
