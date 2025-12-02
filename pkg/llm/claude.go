@@ -8,31 +8,22 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-// ClaudeClient implements the Client interface for Anthropic Claude
 type ClaudeClient struct {
 	client anthropic.Client
 	config *Config
 }
 
-// NewClaudeClient creates a new Claude client
 func NewClaudeClient(config *Config) (*ClaudeClient, error) {
 	if err := config.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
-
 	if config.Model == "" {
 		config.Model = "claude-sonnet-4-20250514"
 	}
-
 	client := anthropic.NewClient(option.WithAPIKey(config.APIKey))
-
-	return &ClaudeClient{
-		client: client,
-		config: config,
-	}, nil
+	return &ClaudeClient{client: client, config: config}, nil
 }
 
-// Generate sends a text generation request to Claude
 func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, error) {
 	maxTokens := int64(req.MaxTokens)
 	if maxTokens == 0 {
@@ -40,7 +31,7 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 	}
 
 	params := anthropic.MessageNewParams{
-		Model:     c.config.Model,
+		Model:     anthropic.Model(c.config.Model),
 		MaxTokens: maxTokens,
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
@@ -49,7 +40,7 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 
 	if req.SystemMsg != "" {
 		params.System = []anthropic.TextBlockParam{
-			anthropic.NewTextBlock(req.SystemMsg),
+			{Text: req.SystemMsg},
 		}
 	}
 
@@ -66,15 +57,13 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 	}
 
 	return &Response{
-		Text:         text,
-		Provider:     ProviderClaude,
-		Model:        string(message.Model),
-		TokensUsed:   int(message.Usage.InputTokens + message.Usage.OutputTokens),
-		FinishReason: string(message.StopReason),
+		Text:       text,
+		Provider:   ProviderClaude,
+		Model:      string(message.Model),
+		TokensUsed: int(message.Usage.InputTokens + message.Usage.OutputTokens),
 	}, nil
 }
 
-// Stream sends a streaming text generation request to Claude
 func (c *ClaudeClient) Stream(ctx context.Context, req *Request, callback func(chunk string) error) error {
 	maxTokens := int64(req.MaxTokens)
 	if maxTokens == 0 {
@@ -82,7 +71,7 @@ func (c *ClaudeClient) Stream(ctx context.Context, req *Request, callback func(c
 	}
 
 	params := anthropic.MessageNewParams{
-		Model:     c.config.Model,
+		Model:     anthropic.Model(c.config.Model),
 		MaxTokens: maxTokens,
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
@@ -91,42 +80,22 @@ func (c *ClaudeClient) Stream(ctx context.Context, req *Request, callback func(c
 
 	if req.SystemMsg != "" {
 		params.System = []anthropic.TextBlockParam{
-			anthropic.NewTextBlock(req.SystemMsg),
+			{Text: req.SystemMsg},
 		}
 	}
 
 	stream := c.client.Messages.NewStreaming(ctx, params)
-
 	for stream.Next() {
 		event := stream.Current()
-		switch delta := event.Delta.(type) {
-		case anthropic.ContentBlockDeltaEventDelta:
-			if delta.Text != "" {
-				if err := callback(delta.Text); err != nil {
-					return err
-				}
+		if event.Delta.Text != "" {
+			if err := callback(event.Delta.Text); err != nil {
+				return err
 			}
 		}
 	}
-
-	if err := stream.Err(); err != nil {
-		return fmt.Errorf("Claude streaming error: %w", err)
-	}
-
-	return nil
+	return stream.Err()
 }
 
-// GetProvider returns the provider name
-func (c *ClaudeClient) GetProvider() Provider {
-	return ProviderClaude
-}
-
-// GetModel returns the model name
-func (c *ClaudeClient) GetModel() string {
-	return c.config.Model
-}
-
-// Validate checks if the client is properly configured
-func (c *ClaudeClient) Validate() error {
-	return c.config.Validate()
-}
+func (c *ClaudeClient) GetProvider() Provider { return ProviderClaude }
+func (c *ClaudeClient) GetModel() string      { return c.config.Model }
+func (c *ClaudeClient) Validate() error       { return c.config.Validate() }
