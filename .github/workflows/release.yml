@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Get version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Build for multiple platforms
+      run: |
+        # Extract version info
+        VERSION=${{ steps.get_version.outputs.VERSION }}
+        GIT_COMMIT=$(git rev-parse --short HEAD)
+        BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        LDFLAGS="-X github.com/hiroki-abe-58/aitxt/cmd.Version=${VERSION} \
+                 -X github.com/hiroki-abe-58/aitxt/cmd.GitCommit=${GIT_COMMIT} \
+                 -X github.com/hiroki-abe-58/aitxt/cmd.BuildDate=${BUILD_DATE}"
+        
+        # Build for different platforms
+        GOOS=darwin GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o aitxt-darwin-arm64 main.go
+        GOOS=darwin GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o aitxt-darwin-amd64 main.go
+        GOOS=linux GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o aitxt-linux-amd64 main.go
+        GOOS=linux GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o aitxt-linux-arm64 main.go
+        GOOS=windows GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o aitxt-windows-amd64.exe main.go
+        
+        # Create archives
+        tar -czf aitxt-darwin-arm64.tar.gz aitxt-darwin-arm64
+        tar -czf aitxt-darwin-amd64.tar.gz aitxt-darwin-amd64
+        tar -czf aitxt-linux-amd64.tar.gz aitxt-linux-amd64
+        tar -czf aitxt-linux-arm64.tar.gz aitxt-linux-arm64
+        zip aitxt-windows-amd64.zip aitxt-windows-amd64.exe
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body: |
+          ## What's Changed
+          ${{ steps.changelog.outputs.CHANGELOG }}
+          
+          ## Installation
+          
+          Download the appropriate binary for your platform and add it to your PATH.
+          
+          ### macOS (Apple Silicon)
+```bash
+          curl -L https://github.com/hiroki-abe-58/aitxt/releases/download/${{ steps.get_version.outputs.VERSION }}/aitxt-darwin-arm64.tar.gz | tar xz
+          sudo mv aitxt-darwin-arm64 /usr/local/bin/aitxt
+```
+          
+          ### macOS (Intel)
+```bash
+          curl -L https://github.com/hiroki-abe-58/aitxt/releases/download/${{ steps.get_version.outputs.VERSION }}/aitxt-darwin-amd64.tar.gz | tar xz
+          sudo mv aitxt-darwin-amd64 /usr/local/bin/aitxt
+```
+          
+          ### Linux (x86_64)
+```bash
+          curl -L https://github.com/hiroki-abe-58/aitxt/releases/download/${{ steps.get_version.outputs.VERSION }}/aitxt-linux-amd64.tar.gz | tar xz
+          sudo mv aitxt-linux-amd64 /usr/local/bin/aitxt
+```
+        files: |
+          aitxt-darwin-arm64.tar.gz
+          aitxt-darwin-amd64.tar.gz
+          aitxt-linux-amd64.tar.gz
+          aitxt-linux-arm64.tar.gz
+          aitxt-windows-amd64.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
