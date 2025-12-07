@@ -129,9 +129,9 @@ func TestProcessFilesWithError(t *testing.T) {
 	result := processor.ProcessFiles(context.Background(), files, "Process: %s", "System")
 
 	if result.FailureCount != 2 {
+	if result.FailureCount != 1 {
 		t.Errorf("Expected FailureCount=1, got %d", result.FailureCount)
 	}
-
 	if result.Tasks[0].Error == nil {
 		t.Error("Task should have error")
 	}
