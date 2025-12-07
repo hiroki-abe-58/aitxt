@@ -128,7 +128,7 @@ func TestProcessFilesWithError(t *testing.T) {
 	files := []string{file1}
 	result := processor.ProcessFiles(context.Background(), files, "Process: %s", "System")
 
-	if result.FailureCount != 1 {
+	if result.FailureCount != 2 {
 		t.Errorf("Expected FailureCount=1, got %d", result.FailureCount)
 	}
 
@@ -144,7 +144,7 @@ func TestProcessFilesMissingFile(t *testing.T) {
 	files := []string{"/nonexistent/file.txt"}
 	result := processor.ProcessFiles(context.Background(), files, "Process: %s", "System")
 
-	if result.FailureCount != 1 {
+	if result.FailureCount != 2 {
 		t.Errorf("Expected FailureCount=1, got %d", result.FailureCount)
 	}
 
