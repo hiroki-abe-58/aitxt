@@ -186,20 +186,23 @@ func (s *Store) Import(filename string) (int, error) {
 	return count, nil
 }
 
-// extractVariables extracts {{.VarName}} variables from a string
+// extractVariables extracts {{.VarName}} or {{ .VarName }} variables from a string
 func extractVariables(s string) []string {
 	var vars []string
 	seen := make(map[string]bool)
 
 	for i := 0; i < len(s)-4; i++ {
-		if s[i:i+3] == "{{." {
+		if s[i:i+2] == "{{" {
 			end := strings.Index(s[i:], "}}")
 			if end > 0 {
-				varName := s[i+3 : i+end]
-				varName = strings.TrimSpace(varName)
-				if !seen[varName] {
-					vars = append(vars, varName)
-					seen[varName] = true
+				content := s[i+2 : i+end]
+				content = strings.TrimSpace(content)
+				if len(content) > 0 && content[0] == '.' {
+					varName := strings.TrimSpace(content[1:])
+					if varName != "" && !seen[varName] {
+						vars = append(vars, varName)
+						seen[varName] = true
+					}
 				}
 			}
 		}

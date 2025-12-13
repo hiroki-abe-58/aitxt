@@ -79,3 +79,17 @@ func (c *Config) ToLLMConfig(provider llm.Provider) (*llm.Config, error) {
 		Temperature: c.Temperature,
 	}, nil
 }
+
+// determineDefaultProvider determines the default provider based on available API keys
+func (c *Config) determineDefaultProvider() llm.Provider {
+	if c.OpenAIKey != "" {
+		return llm.ProviderOpenAI
+	}
+	if c.ClaudeKey != "" {
+		return llm.ProviderClaude
+	}
+	if c.GeminiKey != "" {
+		return llm.ProviderGemini
+	}
+	return llm.ProviderOpenAI
+}
