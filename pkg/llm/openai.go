@@ -60,11 +60,17 @@ func (c *OpenAIClient) Generate(ctx context.Context, req *Request) (*Response, e
 		temperature = float32(c.config.Temperature)
 	}
 
+	topP := float32(c.config.TopP)
+	if topP == 0 {
+		topP = 1.0
+	}
+
 	chatReq := openai.ChatCompletionRequest{
 		Model:       c.config.Model,
 		Messages:    messages,
 		MaxTokens:   maxTokens,
 		Temperature: temperature,
+		TopP:        topP,
 	}
 
 	resp, err := c.client.CreateChatCompletion(ctx, chatReq)
@@ -113,11 +119,17 @@ func (c *OpenAIClient) Stream(ctx context.Context, req *Request, callback func(c
 		temperature = float32(c.config.Temperature)
 	}
 
+	topP := float32(c.config.TopP)
+	if topP == 0 {
+		topP = 1.0
+	}
+
 	chatReq := openai.ChatCompletionRequest{
 		Model:       c.config.Model,
 		Messages:    messages,
 		MaxTokens:   maxTokens,
 		Temperature: temperature,
+		TopP:        topP,
 		Stream:      true,
 	}
 

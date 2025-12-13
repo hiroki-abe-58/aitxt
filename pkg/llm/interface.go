@@ -9,19 +9,19 @@ import (
 type Provider string
 
 const (
-	ProviderOpenAI   Provider = "openai"
-	ProviderClaude   Provider = "claude"
-	ProviderGemini   Provider = "gemini"
-	ProviderUnknown  Provider = "unknown"
+	ProviderOpenAI  Provider = "openai"
+	ProviderClaude  Provider = "claude"
+	ProviderGemini  Provider = "gemini"
+	ProviderUnknown Provider = "unknown"
 )
 
 // Common errors
 var (
-	ErrInvalidProvider    = errors.New("invalid provider")
-	ErrAPIKeyMissing      = errors.New("API key is missing")
-	ErrRateLimitExceeded  = errors.New("rate limit exceeded")
-	ErrInvalidResponse    = errors.New("invalid response from API")
-	ErrContextCanceled    = errors.New("context canceled")
+	ErrInvalidProvider   = errors.New("invalid provider")
+	ErrAPIKeyMissing     = errors.New("API key is missing")
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
+	ErrInvalidResponse   = errors.New("invalid response from API")
+	ErrContextCanceled   = errors.New("context canceled")
 )
 
 // Request represents a text generation request
@@ -67,6 +67,8 @@ type Config struct {
 	Model       string
 	MaxTokens   int
 	Temperature float64
+	TopP        float64
+	TopK        int
 	BaseURL     string
 }
 

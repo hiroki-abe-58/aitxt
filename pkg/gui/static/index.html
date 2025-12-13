@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aitxt - AI-Powered Text Processing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        surface: {
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            700: '#3f3f46',
+                            800: '#27272a',
+                            900: '#18181b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-100 dark:bg-surface-900 text-gray-900 dark:text-gray-100 font-sans" x-data="app()" x-init="init()">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white dark:bg-surface-800 border-r border-gray-200 dark:border-surface-700 flex flex-col">
+            <!-- Logo -->
+            <div class="p-4 border-b border-gray-200 dark:border-surface-700">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-primary-500">smart_toy</span>
+                    <span class="text-xl font-semibold">aitxt</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">AI-Powered Text Processing</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto p-2">
+                <template x-for="(item, index) in menuItems" :key="index">
+                    <button 
+                        @click="currentTab = item.id"
+                        :class="currentTab === item.id ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700'"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <span class="material-icons text-xl" x-text="item.icon"></span>
+                        <span x-text="item.label"></span>
+                    </button>
+                </template>
+            </nav>
+
+            <!-- Provider Status -->
+            <div class="p-4 border-t border-gray-200 dark:border-surface-700">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">PROVIDERS</p>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 text-xs">
+                        <span :class="config.openaiConfigured ? 'bg-green-500' : 'bg-gray-300'" class="w-2 h-2 rounded-full"></span>
+                        <span>OpenAI</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span :class="config.claudeConfigured ? 'bg-green-500' : 'bg-gray-300'" class="w-2 h-2 rounded-full"></span>
+                        <span>Claude</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span :class="config.geminiConfigured ? 'bg-green-500' : 'bg-gray-300'" class="w-2 h-2 rounded-full"></span>
+                        <span>Gemini</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div class="p-4 border-t border-gray-200 dark:border-surface-700">
+                <button @click="toggleDarkMode()" title="Toggle dark mode" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                    <span class="material-icons text-xl" x-text="darkMode ? 'light_mode' : 'dark_mode'"></span>
+                    <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white dark:bg-surface-800 border-b border-gray-200 dark:border-surface-700 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-semibold" x-text="currentMenuItem.label"></h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400" x-text="currentMenuItem.description"></p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <!-- Provider Select -->
+                        <select x-model="selectedProvider" title="Select AI Provider" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                            <template x-for="p in config.availableProviders" :key="p">
+                                <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
+                            </template>
+                        </select>
+                        <!-- Stream Toggle -->
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" x-model="streamEnabled" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                            <span>Stream</span>
+                        </label>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Ask Tab -->
+                <div x-show="currentTab === 'ask'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Question</label>
+                            <textarea x-model="askInput" placeholder="Ask anything..." class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
+                            <div class="mt-2 flex gap-2">
+                                <select x-model="askLang" title="Select response language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="">Response Language</option>
+                                    <option value="en">English</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ko">Korean</option>
+                                </select>
+                                <input type="number" x-model="askTemperature" min="0" max="2" step="0.1" placeholder="Temperature (0.7)" class="w-32 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Response</label>
+                            <div class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Processing...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                            <div x-show="tokenCount > 0" class="mt-2 text-xs text-gray-500">
+                                Tokens used: <span x-text="tokenCount"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitAsk()" :disabled="loading || !askInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">send</span>
+                        <span>Ask</span>
+                    </button>
+                </div>
+
+                <!-- Translate Tab -->
+                <div x-show="currentTab === 'translate'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Source Text</label>
+                                <select x-model="translateFromLang" title="Select source language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                    <option value="">Auto-detect</option>
+                                    <option value="en">English</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ko">Korean</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                </select>
+                            </div>
+                            <textarea x-model="translateInput" placeholder="Enter text to translate..." class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Translation</label>
+                                <select x-model="translateToLang" title="Select target language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                    <option value="en">English</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ko">Korean</option>
+                                    <option value="th">Thai</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="pt">Portuguese</option>
+                                    <option value="ru">Russian</option>
+                                    <option value="vi">Vietnamese</option>
+                                </select>
+                            </div>
+                            <div class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Translating...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitTranslate()" :disabled="loading || !translateInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">translate</span>
+                        <span>Translate</span>
+                    </button>
+                </div>
+
+                <!-- Summarize Tab -->
+                <div x-show="currentTab === 'summarize'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Text to Summarize</label>
+                            <textarea x-model="summarizeInput" placeholder="Paste your text here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
+                            <div class="mt-2">
+                                <label class="text-xs text-gray-500">Max Length (words)</label>
+                                <input type="number" x-model="summarizeMaxLength" min="50" max="1000" title="Maximum summary length in words" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Summary</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Summarizing...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitSummarize()" :disabled="loading || !summarizeInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">summarize</span>
+                        <span>Summarize</span>
+                    </button>
+                </div>
+
+                <!-- Proofread Tab -->
+                <div x-show="currentTab === 'proofread'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Original Text</label>
+                            <textarea x-model="proofreadInput" placeholder="Paste your text to proofread..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
+                            <div class="mt-2">
+                                <label class="text-xs text-gray-500">Style</label>
+                                <select x-model="proofreadStyle" title="Select proofreading style" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="standard">Standard</option>
+                                    <option value="formal">Formal</option>
+                                    <option value="casual">Casual</option>
+                                    <option value="academic">Academic</option>
+                                    <option value="business">Business</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Corrected Text</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Proofreading...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitProofread()" :disabled="loading || !proofreadInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">spellcheck</span>
+                        <span>Proofread</span>
+                    </button>
+                </div>
+
+                <!-- Style Tab -->
+                <div x-show="currentTab === 'style'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Original Text</label>
+                            <textarea x-model="styleInput" placeholder="Enter text to transform..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
+                            <div class="mt-2">
+                                <label class="text-xs text-gray-500">Target Style</label>
+                                <select x-model="styleTarget" title="Select target writing style" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="professional">Professional</option>
+                                    <option value="casual">Casual</option>
+                                    <option value="formal">Formal</option>
+                                    <option value="friendly">Friendly</option>
+                                    <option value="technical">Technical</option>
+                                    <option value="creative">Creative</option>
+                                    <option value="concise">Concise</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Transformed Text</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Transforming...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitStyle()" :disabled="loading || !styleInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">style</span>
+                        <span>Transform Style</span>
+                    </button>
+                </div>
+
+                <!-- Explain Tab -->
+                <div x-show="currentTab === 'explain'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Error Message</label>
+                            <textarea x-model="explainInput" placeholder="Paste your error message here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Explanation</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Analyzing...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitExplain()" :disabled="loading || !explainInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">help_outline</span>
+                        <span>Explain Error</span>
+                    </button>
+                </div>
+
+                <!-- Review Tab -->
+                <div x-show="currentTab === 'review'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Code to Review</label>
+                            <textarea x-model="reviewInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
+                            <div class="mt-2">
+                                <label class="text-xs text-gray-500">Focus Area</label>
+                                <select x-model="reviewFocus" title="Select code review focus area" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="general">General Review</option>
+                                    <option value="security">Security</option>
+                                    <option value="performance">Performance</option>
+                                    <option value="style">Code Style</option>
+                                    <option value="bugs">Bug Detection</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Review Results</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Reviewing...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitReview()" :disabled="loading || !reviewInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">rate_review</span>
+                        <span>Review Code</span>
+                    </button>
+                </div>
+
+                <!-- Doc Tab -->
+                <div x-show="currentTab === 'doc'" class="space-y-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Code</label>
+                            <textarea x-model="docInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
+                            <div class="mt-2">
+                                <label class="text-xs text-gray-500">Documentation Type</label>
+                                <select x-model="docType" title="Select documentation type" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="inline">Inline Comments</option>
+                                    <option value="readme">README</option>
+                                    <option value="api">API Documentation</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-2">Generated Documentation</label>
+                            <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
+                                <div x-show="loading" class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin">autorenew</span>
+                                    <span>Generating...</span>
+                                </div>
+                                <pre x-show="!loading" class="whitespace-pre-wrap font-sans text-sm" x-text="output"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="submitDoc()" :disabled="loading || !docInput" class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-icons">description</span>
+                        <span>Generate Documentation</span>
+                    </button>
+                </div>
+
+                <!-- Chat Tab -->
+                <div x-show="currentTab === 'chat'" class="flex flex-col h-full">
+                    <div class="flex-1 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg overflow-hidden flex flex-col">
+                        <!-- Chat Messages -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chatMessages">
+                            <template x-for="(msg, index) in chatHistory" :key="index">
+                                <div :class="msg.role === 'user' ? 'ml-auto bg-primary-500 text-white' : 'mr-auto bg-gray-100 dark:bg-surface-700'" class="max-w-[80%] rounded-lg p-3">
+                                    <pre class="whitespace-pre-wrap font-sans text-sm" x-text="msg.content"></pre>
+                                </div>
+                            </template>
+                            <div x-show="loading" class="mr-auto bg-gray-100 dark:bg-surface-700 rounded-lg p-3">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <span class="material-icons animate-spin text-sm">autorenew</span>
+                                    <span class="text-sm" x-text="streamOutput || 'Thinking...'"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Chat Input -->
+                        <div class="border-t border-gray-200 dark:border-surface-700 p-4">
+                            <div class="flex gap-2">
+                                <textarea x-model="chatInput" @keydown.enter.prevent="if(!$event.shiftKey) submitChat()" placeholder="Type your message... (Shift+Enter for new line)" class="flex-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-4 py-2 resize-none focus:ring-2 focus:ring-primary-500 outline-none" rows="1"></textarea>
+                                <button @click="submitChat()" :disabled="loading || !chatInput" class="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-600 text-white px-4 rounded-lg transition-colors">
+                                    <span class="material-icons">send</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between mt-2">
+                                <button @click="clearChat()" class="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                    Clear Chat
+                                </button>
+                                <span class="text-xs text-gray-500" x-text="chatHistory.length + ' messages'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div x-show="currentTab === 'settings'" class="space-y-6">
+                    <div class="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-6">
+                        <h2 class="text-lg font-semibold mb-4">Provider Configuration</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span :class="config.openaiConfigured ? 'bg-green-500' : 'bg-red-500'" class="w-3 h-3 rounded-full"></span>
+                                    <div>
+                                        <p class="font-medium">OpenAI</p>
+                                        <p class="text-xs text-gray-500">GPT-4o, GPT-4, GPT-3.5</p>
+                                    </div>
+                                </div>
+                                <span x-text="config.openaiConfigured ? 'Configured' : 'Not Configured'" :class="config.openaiConfigured ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span :class="config.claudeConfigured ? 'bg-green-500' : 'bg-red-500'" class="w-3 h-3 rounded-full"></span>
+                                    <div>
+                                        <p class="font-medium">Claude (Anthropic)</p>
+                                        <p class="text-xs text-gray-500">Claude Sonnet, Claude Opus</p>
+                                    </div>
+                                </div>
+                                <span x-text="config.claudeConfigured ? 'Configured' : 'Not Configured'" :class="config.claudeConfigured ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium"></span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-700 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span :class="config.geminiConfigured ? 'bg-green-500' : 'bg-red-500'" class="w-3 h-3 rounded-full"></span>
+                                    <div>
+                                        <p class="font-medium">Google Gemini</p>
+                                        <p class="text-xs text-gray-500">Gemini 1.5 Flash, Gemini Pro</p>
+                                    </div>
+                                </div>
+                                <span x-text="config.geminiConfigured ? 'Configured' : 'Not Configured'" :class="config.geminiConfigured ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Parameters -->
+                    <div class="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">Model Parameters</h2>
+                            <div class="flex gap-2">
+                                <button @click="resetProviderSettings(settingsTab)" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-surface-600 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center gap-1">
+                                    <span class="material-icons text-base">restart_alt</span>
+                                    Reset
+                                </button>
+                                <button @click="saveProviderSettings()" :disabled="settingsSaving" class="px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg flex items-center gap-1">
+                                    <span class="material-icons text-base" x-text="settingsSaving ? 'hourglass_empty' : 'save'"></span>
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Provider Tabs -->
+                        <div class="flex gap-1 p-1 bg-surface-100 dark:bg-surface-700 rounded-lg mb-6">
+                            <button @click="settingsTab = 'openai'" :class="settingsTab === 'openai' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">OpenAI</button>
+                            <button @click="settingsTab = 'gemini'" :class="settingsTab === 'gemini' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">Gemini</button>
+                            <button @click="settingsTab = 'claude'" :class="settingsTab === 'claude' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">Claude</button>
+                        </div>
+
+                        <!-- OpenAI Settings -->
+                        <div x-show="settingsTab === 'openai'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.openai.model" title="Select OpenAI model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="gpt-4o">GPT-4o</option>
+                                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    <option value="gpt-4">GPT-4</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.openai.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.openai.temperature" min="0" max="2" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (2)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.openai.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.openai.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.openai.max_tokens" min="1" max="128000" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 128,000</p>
+                            </div>
+                        </div>
+
+                        <!-- Gemini Settings -->
+                        <div x-show="settingsTab === 'gemini'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.gemini.model" title="Select Gemini model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <option value="gemini-pro">Gemini Pro</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.gemini.temperature" min="0" max="2" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (2)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.gemini.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top K -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top K</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.top_k"></span>
+                                </div>
+                                <input type="range" x-model.number="providerSettings.gemini.top_k" min="1" max="100" step="1" title="Top K limits token selection to top K tokens" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (1)</span>
+                                    <span>Diverse (100)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.gemini.max_tokens" min="1" max="8192" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 8,192</p>
+                            </div>
+                        </div>
+
+                        <!-- Claude Settings -->
+                        <div x-show="settingsTab === 'claude'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.claude.model" title="Select Claude model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.claude.temperature" min="0" max="1" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.claude.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top K -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top K</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.top_k || 'Disabled'"></span>
+                                </div>
+                                <input type="range" x-model.number="providerSettings.claude.top_k" min="0" max="500" step="1" title="Top K limits token selection (0 to disable)" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Disabled (0)</span>
+                                    <span>Max (500)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.claude.max_tokens" min="1" max="4096" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 4,096</p>
+                            </div>
+                        </div>
+
+                        <!-- Settings saved message -->
+                        <div x-show="settingsSaved" x-transition class="mt-4 p-3 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg flex items-center gap-2 text-sm">
+                            <span class="material-icons text-base">check_circle</span>
+                            Settings saved successfully
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-6">
+                        <h2 class="text-lg font-semibold mb-4">Environment Variables</h2>
+                        <p class="text-sm text-gray-500 mb-4">Set these environment variables to configure providers:</p>
+                        <div class="bg-surface-900 text-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                            <p class="text-green-400"># OpenAI</p>
+                            <p>export OPENAI_API_KEY="sk-..."</p>
+                            <p class="text-green-400 mt-2"># Claude (Anthropic)</p>
+                            <p>export ANTHROPIC_API_KEY="sk-ant-..."</p>
+                            <p class="text-green-400 mt-2"># Google Gemini</p>
+                            <p>export GOOGLE_API_KEY="..."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Error Toast -->
+    <div x-show="error" x-transition class="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-md">
+        <span class="material-icons">error</span>
+        <span x-text="error"></span>
+        <button @click="error = ''" class="ml-2">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

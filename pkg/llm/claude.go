@@ -30,12 +30,32 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 		maxTokens = int64(c.config.MaxTokens)
 	}
 
+	temperature := req.Temperature
+	if temperature == 0 {
+		temperature = c.config.Temperature
+	}
+
 	params := anthropic.MessageNewParams{
 		Model:     anthropic.Model(c.config.Model),
 		MaxTokens: maxTokens,
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
 		},
+	}
+
+	// Set temperature if specified
+	if temperature > 0 {
+		params.Temperature = anthropic.Float(temperature)
+	}
+
+	// Set top_p if specified
+	if c.config.TopP > 0 {
+		params.TopP = anthropic.Float(c.config.TopP)
+	}
+
+	// Set top_k if specified
+	if c.config.TopK > 0 {
+		params.TopK = anthropic.Int(int64(c.config.TopK))
 	}
 
 	if req.SystemMsg != "" {
@@ -70,12 +90,32 @@ func (c *ClaudeClient) Stream(ctx context.Context, req *Request, callback func(c
 		maxTokens = int64(c.config.MaxTokens)
 	}
 
+	temperature := req.Temperature
+	if temperature == 0 {
+		temperature = c.config.Temperature
+	}
+
 	params := anthropic.MessageNewParams{
 		Model:     anthropic.Model(c.config.Model),
 		MaxTokens: maxTokens,
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
 		},
+	}
+
+	// Set temperature if specified
+	if temperature > 0 {
+		params.Temperature = anthropic.Float(temperature)
+	}
+
+	// Set top_p if specified
+	if c.config.TopP > 0 {
+		params.TopP = anthropic.Float(c.config.TopP)
+	}
+
+	// Set top_k if specified
+	if c.config.TopK > 0 {
+		params.TopK = anthropic.Int(int64(c.config.TopK))
 	}
 
 	if req.SystemMsg != "" {

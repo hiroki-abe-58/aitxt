@@ -34,6 +34,12 @@ func NewGeminiClient(ctx context.Context, config *Config) (*GeminiClient, error)
 	model := client.GenerativeModel(config.Model)
 	model.SetTemperature(float32(config.Temperature))
 	model.SetMaxOutputTokens(int32(config.MaxTokens))
+	if config.TopP > 0 {
+		model.SetTopP(float32(config.TopP))
+	}
+	if config.TopK > 0 {
+		model.SetTopK(int32(config.TopK))
+	}
 
 	return &GeminiClient{
 		client: client,

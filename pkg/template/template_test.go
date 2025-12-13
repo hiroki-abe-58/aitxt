@@ -10,11 +10,11 @@ import (
 func setupTestStore(t *testing.T) (*Store, func()) {
 	tmpDir := t.TempDir()
 	store := &Store{dir: tmpDir}
-	
+
 	cleanup := func() {
 		os.RemoveAll(tmpDir)
 	}
-	
+
 	return store, cleanup
 }
 

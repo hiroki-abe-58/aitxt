@@ -12,11 +12,11 @@ func setupTestStore(t *testing.T) (*Store, func()) {
 		file:    filepath.Join(tmpDir, "aliases.json"),
 		aliases: make(map[string]*Alias),
 	}
-	
+
 	cleanup := func() {
 		os.RemoveAll(tmpDir)
 	}
-	
+
 	return store, cleanup
 }
 

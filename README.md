@@ -5,6 +5,8 @@
 [![Build Status](https://github.com/hiroki-abe-58/aitxt/actions/workflows/build.yml/badge.svg)](https://github.com/hiroki-abe-58/aitxt/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hiroki-abe-58/aitxt)](https://goreportcard.com/report/github.com/hiroki-abe-58/aitxt)
 
+English | [日本語](README_ja.md) | [中文](README_zh.md)
+
 A powerful command-line tool for AI-powered text processing with support for multiple LLM providers (OpenAI, Claude, Gemini).
 
 ## ✨ Features

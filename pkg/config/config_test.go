@@ -113,11 +113,11 @@ func TestToLLMConfigMissingKey(t *testing.T) {
 
 func TestDetermineDefaultProvider(t *testing.T) {
 	tests := []struct {
-		name      string
-		openai    string
-		claude    string
-		gemini    string
-		want      llm.Provider
+		name   string
+		openai string
+		claude string
+		gemini string
+		want   llm.Provider
 	}{
 		{"OpenAI only", "key1", "", "", llm.ProviderOpenAI},
 		{"Claude only", "", "key2", "", llm.ProviderClaude},
