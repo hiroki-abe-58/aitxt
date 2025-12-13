@@ -145,8 +145,8 @@ func TestDetermineDefaultProvider(t *testing.T) {
 func TestConfigDefaults(t *testing.T) {
 	cfg, _ := Load()
 
-	if cfg.MaxTokens != 1000 {
-		t.Errorf("Expected default MaxTokens=1000, got %d", cfg.MaxTokens)
+	if cfg.MaxTokens != 2000 {
+		t.Errorf("Expected default MaxTokens=2000, got %d", cfg.MaxTokens)
 	}
 
 	if cfg.Temperature != 0.7 {
