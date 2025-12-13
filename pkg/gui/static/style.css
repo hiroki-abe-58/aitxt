@@ -1,0 +1,208 @@
+/* Custom styles for aitxt GUI */
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Smooth transitions */
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Focus styles */
+textarea:focus,
+input:focus,
+select:focus,
+button:focus {
+    outline: none;
+}
+
+/* Code styling */
+pre {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+/* Textarea auto-resize */
+textarea {
+    min-height: 100px;
+}
+
+/* Material icons alignment */
+.material-icons {
+    vertical-align: middle;
+}
+
+/* Loading animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Toast animation */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Chat message styling */
+#chatMessages {
+    scroll-behavior: smooth;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Selection color */
+::selection {
+    background-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Button ripple effect */
+button {
+    position: relative;
+    overflow: hidden;
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+button:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Dark mode transition */
+html {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Provider status indicator pulse */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Error toast */
+.error-toast {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Sidebar hover effects */
+nav button {
+    transition: all 0.2s ease;
+}
+
+nav button:hover {
+    transform: translateX(4px);
+}
+
+/* Input placeholder styling */
+::placeholder {
+    color: #9ca3af;
+}
+
+.dark ::placeholder {
+    color: #6b7280;
+}
+
+/* Code block styling in output */
+pre code {
+    display: block;
+    padding: 1rem;
+    background: #1f2937;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+/* Markdown-like styling for output */
+pre strong {
+    font-weight: 600;
+}
+
+pre em {
+    font-style: italic;
+}
+
+/* Header shadow on scroll */
+header {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.dark header {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Main content area styling */
+main {
+    background: linear-gradient(180deg, #f4f4f5 0%, #fafafa 100%);
+}
+
+.dark main {
+    background: linear-gradient(180deg, #18181b 0%, #27272a 100%);
+}
