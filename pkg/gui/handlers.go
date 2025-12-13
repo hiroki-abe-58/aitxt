@@ -61,7 +61,7 @@ type APIResponse struct {
 
 // ConfigResponse represents config API response
 type ConfigResponse struct {
-	Provider       string   `json:"provider"`
+	Provider           string   `json:"provider"`
 	AvailableProviders []string `json:"availableProviders"`
 	OpenAIConfigured   bool     `json:"openaiConfigured"`
 	ClaudeConfigured   bool     `json:"claudeConfigured"`
@@ -813,4 +813,3 @@ func getLanguageName(code string) string {
 	}
 	return code
 }
-

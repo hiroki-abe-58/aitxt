@@ -49,9 +49,9 @@ func runConfig(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	providers := []struct {
-		name    string
-		envKey  string
-		apiKey  string
+		name     string
+		envKey   string
+		apiKey   string
 		provider llm.Provider
 	}{
 		{"OpenAI", "OPENAI_API_KEY", cfg.OpenAIKey, llm.ProviderOpenAI},
@@ -66,12 +66,12 @@ func runConfig(cmd *cobra.Command, args []string) error {
 			status = "✅ Configured"
 			keyDisplay = maskAPIKey(p.apiKey)
 		}
-		
+
 		defaultMark := ""
 		if p.provider == cfg.Provider {
 			defaultMark = " (default)"
 		}
-		
+
 		fmt.Printf("  %s%s\n", p.name, defaultMark)
 		fmt.Printf("    Status: %s\n", status)
 		if keyDisplay != "" {

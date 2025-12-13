@@ -23,11 +23,11 @@ type Task struct {
 
 // Result represents batch processing result
 type Result struct {
-	TotalTasks     int
-	SuccessCount   int
-	FailureCount   int
-	TotalDuration  time.Duration
-	Tasks          []*Task
+	TotalTasks    int
+	SuccessCount  int
+	FailureCount  int
+	TotalDuration time.Duration
+	Tasks         []*Task
 }
 
 // Processor handles batch processing

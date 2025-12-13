@@ -19,27 +19,27 @@ const (
 // Messages holds all translatable messages
 type Messages struct {
 	// General
-	AppDescription    string
-	AppLongDesc       string
-	Version           string
-	
+	AppDescription string
+	AppLongDesc    string
+	Version        string
+
 	// Errors
-	ErrNoInput        string
-	ErrReadFile       string
-	ErrReadStdin      string
-	ErrLoadConfig     string
-	ErrCreateClient   string
-	ErrGenerate       string
+	ErrNoInput         string
+	ErrReadFile        string
+	ErrReadStdin       string
+	ErrLoadConfig      string
+	ErrCreateClient    string
+	ErrGenerate        string
 	ErrNoStagedChanges string
-	
+
 	// Commands
-	Summarizing       string
-	Translating       string
-	Proofreading      string
-	Generating        string
-	Analyzing         string
-	TokensUsed        string
-	
+	Summarizing  string
+	Translating  string
+	Proofreading string
+	Generating   string
+	Analyzing    string
+	TokensUsed   string
+
 	// Commit command
 	SuggestedCommit   string
 	CommitInstruction string
@@ -60,7 +60,7 @@ func DetectLanguage() Language {
 	// Check LANG environment variable
 	lang := os.Getenv("LANG")
 	lang = strings.ToLower(lang)
-	
+
 	switch {
 	case strings.HasPrefix(lang, "ja"):
 		return LangJapanese

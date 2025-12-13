@@ -42,4 +42,3 @@ func init() {
 func runGUI(cmd *cobra.Command, args []string) error {
 	return gui.Start(guiPort)
 }
-
