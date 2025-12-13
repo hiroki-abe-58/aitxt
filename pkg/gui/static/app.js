@@ -20,6 +20,16 @@ function app() {
         selectedProvider: '',
         streamEnabled: false,
         
+        // Settings
+        settingsTab: 'openai',
+        settingsSaving: false,
+        settingsSaved: false,
+        providerSettings: {
+            openai: { temperature: 0.7, top_p: 1.0, top_k: 0, max_tokens: 2000, model: 'gpt-4o' },
+            gemini: { temperature: 0.7, top_p: 0.95, top_k: 40, max_tokens: 2000, model: 'gemini-1.5-flash' },
+            claude: { temperature: 0.7, top_p: 0.9, top_k: 0, max_tokens: 2000, model: 'claude-sonnet-4-20250514' }
+        },
+        
         // Menu Items
         menuItems: [
             { id: 'ask', label: 'Ask', icon: 'chat', description: 'Ask AI any question' },
@@ -77,6 +87,9 @@ function app() {
             
             // Load config
             await this.loadConfig();
+            
+            // Load settings
+            await this.loadProviderSettings();
         },
         
         toggleDarkMode() {
@@ -349,6 +362,100 @@ function app() {
         
         clearChat() {
             this.chatHistory = [];
+        },
+        
+        async loadProviderSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.providerSettings = {
+                        openai: {
+                            temperature: parseFloat(data.openai.temperature) || 0.7,
+                            top_p: parseFloat(data.openai.top_p) || 1.0,
+                            top_k: parseInt(data.openai.top_k) || 0,
+                            max_tokens: parseInt(data.openai.max_tokens) || 2000,
+                            model: data.openai.model || 'gpt-4o'
+                        },
+                        gemini: {
+                            temperature: parseFloat(data.gemini.temperature) || 0.7,
+                            top_p: parseFloat(data.gemini.top_p) || 0.95,
+                            top_k: parseInt(data.gemini.top_k) || 40,
+                            max_tokens: parseInt(data.gemini.max_tokens) || 2000,
+                            model: data.gemini.model || 'gemini-1.5-flash'
+                        },
+                        claude: {
+                            temperature: parseFloat(data.claude.temperature) || 0.7,
+                            top_p: parseFloat(data.claude.top_p) || 0.9,
+                            top_k: parseInt(data.claude.top_k) || 0,
+                            max_tokens: parseInt(data.claude.max_tokens) || 2000,
+                            model: data.claude.model || 'claude-sonnet-4-20250514'
+                        }
+                    };
+                }
+            } catch (err) {
+                console.error('Failed to load settings:', err);
+            }
+        },
+        
+        async saveProviderSettings() {
+            this.settingsSaving = true;
+            this.settingsSaved = false;
+            
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        openai: {
+                            temperature: parseFloat(this.providerSettings.openai.temperature),
+                            top_p: parseFloat(this.providerSettings.openai.top_p),
+                            top_k: parseInt(this.providerSettings.openai.top_k),
+                            max_tokens: parseInt(this.providerSettings.openai.max_tokens),
+                            model: this.providerSettings.openai.model
+                        },
+                        gemini: {
+                            temperature: parseFloat(this.providerSettings.gemini.temperature),
+                            top_p: parseFloat(this.providerSettings.gemini.top_p),
+                            top_k: parseInt(this.providerSettings.gemini.top_k),
+                            max_tokens: parseInt(this.providerSettings.gemini.max_tokens),
+                            model: this.providerSettings.gemini.model
+                        },
+                        claude: {
+                            temperature: parseFloat(this.providerSettings.claude.temperature),
+                            top_p: parseFloat(this.providerSettings.claude.top_p),
+                            top_k: parseInt(this.providerSettings.claude.top_k),
+                            max_tokens: parseInt(this.providerSettings.claude.max_tokens),
+                            model: this.providerSettings.claude.model
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.settingsSaved = true;
+                    setTimeout(() => { this.settingsSaved = false; }, 3000);
+                } else {
+                    this.error = data.error || 'Failed to save settings';
+                }
+            } catch (err) {
+                this.error = err.message || 'Failed to save settings';
+            } finally {
+                this.settingsSaving = false;
+            }
+        },
+        
+        resetProviderSettings(provider) {
+            const defaults = {
+                openai: { temperature: 0.7, top_p: 1.0, top_k: 0, max_tokens: 2000, model: 'gpt-4o' },
+                gemini: { temperature: 0.7, top_p: 0.95, top_k: 40, max_tokens: 2000, model: 'gemini-1.5-flash' },
+                claude: { temperature: 0.7, top_p: 0.9, top_k: 0, max_tokens: 2000, model: 'claude-sonnet-4-20250514' }
+            };
+            
+            if (defaults[provider]) {
+                this.providerSettings[provider] = { ...defaults[provider] };
+            }
         }
     };
 }

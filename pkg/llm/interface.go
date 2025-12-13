@@ -67,6 +67,8 @@ type Config struct {
 	Model       string
 	MaxTokens   int
 	Temperature float64
+	TopP        float64
+	TopK        int
 	BaseURL     string
 }
 

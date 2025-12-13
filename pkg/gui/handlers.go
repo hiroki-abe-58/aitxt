@@ -22,6 +22,7 @@ func NewHandlers() *Handlers {
 // Register registers all API routes
 func (h *Handlers) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/config", h.handleConfig)
+	mux.HandleFunc("/api/settings", h.handleSettings)
 	mux.HandleFunc("/api/ask", h.handleAsk)
 	mux.HandleFunc("/api/translate", h.handleTranslate)
 	mux.HandleFunc("/api/summarize", h.handleSummarize)
@@ -115,10 +116,85 @@ func (h *Handlers) handleConfig(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
+// SettingsResponse represents the settings API response
+type SettingsResponse struct {
+	OpenAI config.ProviderSettings `json:"openai"`
+	Gemini config.ProviderSettings `json:"gemini"`
+	Claude config.ProviderSettings `json:"claude"`
+}
+
+func (h *Handlers) handleSettings(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.getSettings(w, r)
+	case http.MethodPost:
+		h.saveSettings(w, r)
+	default:
+		writeError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+	}
+}
+
+func (h *Handlers) getSettings(w http.ResponseWriter, r *http.Request) {
+	settings, err := config.LoadSettings()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	resp := SettingsResponse{
+		OpenAI: settings.OpenAI,
+		Gemini: settings.Gemini,
+		Claude: settings.Claude,
+	}
+
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func (h *Handlers) saveSettings(w http.ResponseWriter, r *http.Request) {
+	var req SettingsResponse
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// Validate settings
+	if err := config.ValidateProviderSettings("openai", &req.OpenAI); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := config.ValidateProviderSettings("gemini", &req.Gemini); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := config.ValidateProviderSettings("claude", &req.Claude); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	settings := &config.Settings{
+		OpenAI: req.OpenAI,
+		Gemini: req.Gemini,
+		Claude: req.Claude,
+	}
+
+	if err := config.SaveSettings(settings); err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, APIResponse{Success: true})
+}
+
 func (h *Handlers) createClient(provider string) (llm.Client, error) {
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Load saved settings
+	settings, err := config.LoadSettings()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load settings: %w", err)
 	}
 
 	p := cfg.Provider
@@ -129,6 +205,16 @@ func (h *Handlers) createClient(provider string) (llm.Client, error) {
 	llmConfig, err := cfg.ToLLMConfig(p)
 	if err != nil {
 		return nil, err
+	}
+
+	// Apply provider-specific settings
+	providerSettings := settings.GetProviderSettings(string(p))
+	llmConfig.Temperature = providerSettings.Temperature
+	llmConfig.TopP = providerSettings.TopP
+	llmConfig.TopK = providerSettings.TopK
+	llmConfig.MaxTokens = providerSettings.MaxTokens
+	if providerSettings.Model != "" {
+		llmConfig.Model = providerSettings.Model
 	}
 
 	factory := llm.NewFactory()

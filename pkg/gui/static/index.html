@@ -92,7 +92,7 @@
 
             <!-- Theme Toggle -->
             <div class="p-4 border-t border-gray-200 dark:border-surface-700">
-                <button @click="toggleDarkMode()" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                <button @click="toggleDarkMode()" title="Toggle dark mode" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                     <span class="material-icons text-xl" x-text="darkMode ? 'light_mode' : 'dark_mode'"></span>
                     <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
                 </button>
@@ -110,7 +110,7 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <!-- Provider Select -->
-                        <select x-model="selectedProvider" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
+                        <select x-model="selectedProvider" title="Select AI Provider" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
                             <template x-for="p in config.availableProviders" :key="p">
                                 <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
                             </template>
@@ -133,7 +133,7 @@
                             <label class="text-sm font-medium mb-2">Question</label>
                             <textarea x-model="askInput" placeholder="Ask anything..." class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2 flex gap-2">
-                                <select x-model="askLang" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <select x-model="askLang" title="Select response language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                                     <option value="">Response Language</option>
                                     <option value="en">English</option>
                                     <option value="ja">Japanese</option>
@@ -169,7 +169,7 @@
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-sm font-medium">Source Text</label>
-                                <select x-model="translateFromLang" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                <select x-model="translateFromLang" title="Select source language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
                                     <option value="">Auto-detect</option>
                                     <option value="en">English</option>
                                     <option value="ja">Japanese</option>
@@ -185,7 +185,7 @@
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-sm font-medium">Translation</label>
-                                <select x-model="translateToLang" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                <select x-model="translateToLang" title="Select target language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
                                     <option value="en">English</option>
                                     <option value="ja">Japanese</option>
                                     <option value="zh">Chinese</option>
@@ -222,7 +222,7 @@
                             <textarea x-model="summarizeInput" placeholder="Paste your text here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Max Length (words)</label>
-                                <input type="number" x-model="summarizeMaxLength" min="50" max="1000" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <input type="number" x-model="summarizeMaxLength" min="50" max="1000" title="Maximum summary length in words" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                             </div>
                         </div>
                         <div class="flex flex-col">
@@ -250,7 +250,7 @@
                             <textarea x-model="proofreadInput" placeholder="Paste your text to proofread..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Style</label>
-                                <select x-model="proofreadStyle" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <select x-model="proofreadStyle" title="Select proofreading style" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                                     <option value="standard">Standard</option>
                                     <option value="formal">Formal</option>
                                     <option value="casual">Casual</option>
@@ -284,7 +284,7 @@
                             <textarea x-model="styleInput" placeholder="Enter text to transform..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Target Style</label>
-                                <select x-model="styleTarget" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <select x-model="styleTarget" title="Select target writing style" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                                     <option value="professional">Professional</option>
                                     <option value="casual">Casual</option>
                                     <option value="formal">Formal</option>
@@ -344,7 +344,7 @@
                             <textarea x-model="reviewInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Focus Area</label>
-                                <select x-model="reviewFocus" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <select x-model="reviewFocus" title="Select code review focus area" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                                     <option value="general">General Review</option>
                                     <option value="security">Security</option>
                                     <option value="performance">Performance</option>
@@ -378,7 +378,7 @@
                             <textarea x-model="docInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Documentation Type</label>
-                                <select x-model="docType" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <select x-model="docType" title="Select documentation type" class="w-full mt-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
                                     <option value="inline">Inline Comments</option>
                                     <option value="readme">README</option>
                                     <option value="api">API Documentation</option>
@@ -472,6 +472,192 @@
                                 </div>
                                 <span x-text="config.geminiConfigured ? 'Configured' : 'Not Configured'" :class="config.geminiConfigured ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium"></span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Parameters -->
+                    <div class="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">Model Parameters</h2>
+                            <div class="flex gap-2">
+                                <button @click="resetProviderSettings(settingsTab)" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-surface-600 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-700 flex items-center gap-1">
+                                    <span class="material-icons text-base">restart_alt</span>
+                                    Reset
+                                </button>
+                                <button @click="saveProviderSettings()" :disabled="settingsSaving" class="px-3 py-1.5 text-sm bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg flex items-center gap-1">
+                                    <span class="material-icons text-base" x-text="settingsSaving ? 'hourglass_empty' : 'save'"></span>
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Provider Tabs -->
+                        <div class="flex gap-1 p-1 bg-surface-100 dark:bg-surface-700 rounded-lg mb-6">
+                            <button @click="settingsTab = 'openai'" :class="settingsTab === 'openai' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">OpenAI</button>
+                            <button @click="settingsTab = 'gemini'" :class="settingsTab === 'gemini' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">Gemini</button>
+                            <button @click="settingsTab = 'claude'" :class="settingsTab === 'claude' ? 'bg-white dark:bg-surface-600 shadow-sm' : ''" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all">Claude</button>
+                        </div>
+
+                        <!-- OpenAI Settings -->
+                        <div x-show="settingsTab === 'openai'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.openai.model" title="Select OpenAI model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="gpt-4o">GPT-4o</option>
+                                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    <option value="gpt-4">GPT-4</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.openai.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.openai.temperature" min="0" max="2" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (2)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.openai.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.openai.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.openai.max_tokens" min="1" max="128000" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 128,000</p>
+                            </div>
+                        </div>
+
+                        <!-- Gemini Settings -->
+                        <div x-show="settingsTab === 'gemini'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.gemini.model" title="Select Gemini model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <option value="gemini-pro">Gemini Pro</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.gemini.temperature" min="0" max="2" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (2)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.gemini.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top K -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top K</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.gemini.top_k"></span>
+                                </div>
+                                <input type="range" x-model.number="providerSettings.gemini.top_k" min="1" max="100" step="1" title="Top K limits token selection to top K tokens" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (1)</span>
+                                    <span>Diverse (100)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.gemini.max_tokens" min="1" max="8192" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 8,192</p>
+                            </div>
+                        </div>
+
+                        <!-- Claude Settings -->
+                        <div x-show="settingsTab === 'claude'" class="space-y-6">
+                            <!-- Model -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Model</label>
+                                <select x-model="providerSettings.claude.model" title="Select Claude model" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                    <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                                </select>
+                            </div>
+                            <!-- Temperature -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Temperature</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.temperature.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.claude.temperature" min="0" max="1" step="0.01" title="Temperature controls randomness" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Focused (0)</span>
+                                    <span>Creative (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top P -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top P</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.top_p.toFixed(2)"></span>
+                                </div>
+                                <input type="range" x-model="providerSettings.claude.top_p" min="0" max="1" step="0.01" title="Top P controls diversity via nucleus sampling" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Narrow (0)</span>
+                                    <span>Wide (1)</span>
+                                </div>
+                            </div>
+                            <!-- Top K -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-medium">Top K</label>
+                                    <span class="text-sm text-gray-500" x-text="providerSettings.claude.top_k || 'Disabled'"></span>
+                                </div>
+                                <input type="range" x-model.number="providerSettings.claude.top_k" min="0" max="500" step="1" title="Top K limits token selection (0 to disable)" class="w-full h-2 bg-surface-200 dark:bg-surface-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>Disabled (0)</span>
+                                    <span>Max (500)</span>
+                                </div>
+                            </div>
+                            <!-- Max Tokens -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Max Tokens</label>
+                                <input type="number" x-model.number="providerSettings.claude.max_tokens" min="1" max="4096" title="Maximum number of tokens in response" class="w-full bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
+                                <p class="text-xs text-gray-400 mt-1">Range: 1 - 4,096</p>
+                            </div>
+                        </div>
+
+                        <!-- Settings saved message -->
+                        <div x-show="settingsSaved" x-transition class="mt-4 p-3 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg flex items-center gap-2 text-sm">
+                            <span class="material-icons text-base">check_circle</span>
+                            Settings saved successfully
                         </div>
                     </div>
 
