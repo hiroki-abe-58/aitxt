@@ -62,7 +62,7 @@ func (s *Server) Run() error {
 		fmt.Println("\nShutting down server...")
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		s.server.Shutdown(ctx)
+		_ = s.server.Shutdown(ctx)
 	}()
 
 	fmt.Printf("\n  aitxt GUI is running!\n")

@@ -63,7 +63,7 @@ func (c *GeminiClient) Generate(ctx context.Context, req *Request) (*Response, e
 
 	resp, err := c.model.GenerateContent(ctx, genai.Text(req.Prompt))
 	if err != nil {
-		return nil, fmt.Errorf("Gemini API error: %w", err)
+		return nil, fmt.Errorf("gemini API error: %w", err)
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
@@ -117,7 +117,7 @@ func (c *GeminiClient) Stream(ctx context.Context, req *Request, callback func(c
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("Gemini streaming error: %w", err)
+			return fmt.Errorf("gemini streaming error: %w", err)
 		}
 
 		for _, candidate := range resp.Candidates {

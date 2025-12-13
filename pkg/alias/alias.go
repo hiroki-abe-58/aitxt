@@ -39,7 +39,7 @@ func NewStore() (*Store, error) {
 		aliases: make(map[string]*Alias),
 	}
 
-	store.load()
+	_ = store.load()
 	return store, nil
 }
 

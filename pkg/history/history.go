@@ -107,7 +107,7 @@ func (s *Store) Clear() error {
 	files, _ := os.ReadDir(s.dir)
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
-			os.Remove(filepath.Join(s.dir, file.Name()))
+			_ = os.Remove(filepath.Join(s.dir, file.Name()))
 		}
 	}
 	return nil
@@ -128,7 +128,9 @@ func (s *Store) loadEntry(filename string) (*Entry, error) {
 		return nil, err
 	}
 	var entry Entry
-	json.Unmarshal(data, &entry)
+	if err := json.Unmarshal(data, &entry); err != nil {
+		return nil, err
+	}
 	return &entry, nil
 }
 

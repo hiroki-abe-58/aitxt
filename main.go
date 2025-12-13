@@ -20,5 +20,5 @@ func main() {
 		}
 	}
 
-	cmd.Execute(cmd.Version)
+	_ = cmd.Execute(cmd.Version)
 }

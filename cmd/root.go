@@ -31,7 +31,7 @@ Examples:
   aitxt review code.go
   aitxt commit`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		_ = cmd.Help()
 	},
 }
 

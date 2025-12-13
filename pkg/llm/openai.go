@@ -137,7 +137,7 @@ func (c *OpenAIClient) Stream(ctx context.Context, req *Request, callback func(c
 	if err != nil {
 		return fmt.Errorf("OpenAI streaming error: %w", err)
 	}
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	for {
 		response, err := stream.Recv()

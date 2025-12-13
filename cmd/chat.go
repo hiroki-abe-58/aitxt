@@ -107,7 +107,7 @@ func runChat(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize readline: %w", err)
 	}
-	defer rl.Close()
+	defer func() { _ = rl.Close() }()
 
 	// Print welcome message
 	fmt.Println()

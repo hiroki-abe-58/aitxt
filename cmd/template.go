@@ -126,7 +126,7 @@ func init() {
 	templateAddCmd.Flags().StringVarP(&addCommand, "command", "c", "", "Associated command")
 	templateAddCmd.Flags().StringVarP(&addSystemMsg, "system", "s", "", "System message")
 	templateAddCmd.Flags().StringVarP(&addPrompt, "prompt", "p", "", "Prompt template")
-	templateAddCmd.MarkFlagRequired("name")
+	_ = templateAddCmd.MarkFlagRequired("name")
 
 	templateUseCmd.Flags().StringArrayVar(&useVars, "var", []string{}, "Variables (format: Key=Value)")
 }

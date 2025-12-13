@@ -185,27 +185,27 @@ func ValidateProviderSettings(provider string, settings *ProviderSettings) error
 	switch provider {
 	case "openai":
 		if settings.Temperature < 0 || settings.Temperature > 2 {
-			return fmt.Errorf("OpenAI temperature must be between 0 and 2")
+			return fmt.Errorf("openai temperature must be between 0 and 2")
 		}
 		if settings.TopP < 0 || settings.TopP > 1 {
-			return fmt.Errorf("OpenAI top_p must be between 0 and 1")
+			return fmt.Errorf("openai top_p must be between 0 and 1")
 		}
 	case "gemini":
 		if settings.Temperature < 0 || settings.Temperature > 2 {
-			return fmt.Errorf("Gemini temperature must be between 0 and 2")
+			return fmt.Errorf("gemini temperature must be between 0 and 2")
 		}
 		if settings.TopP < 0 || settings.TopP > 1 {
-			return fmt.Errorf("Gemini top_p must be between 0 and 1")
+			return fmt.Errorf("gemini top_p must be between 0 and 1")
 		}
 		if settings.TopK < 0 || settings.TopK > 100 {
-			return fmt.Errorf("Gemini top_k must be between 0 and 100")
+			return fmt.Errorf("gemini top_k must be between 0 and 100")
 		}
 	case "claude":
 		if settings.Temperature < 0 || settings.Temperature > 1 {
-			return fmt.Errorf("Claude temperature must be between 0 and 1")
+			return fmt.Errorf("claude temperature must be between 0 and 1")
 		}
 		if settings.TopP < 0 || settings.TopP > 1 {
-			return fmt.Errorf("Claude top_p must be between 0 and 1")
+			return fmt.Errorf("claude top_p must be between 0 and 1")
 		}
 	}
 

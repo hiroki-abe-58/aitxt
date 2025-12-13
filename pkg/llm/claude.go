@@ -66,7 +66,7 @@ func (c *ClaudeClient) Generate(ctx context.Context, req *Request) (*Response, e
 
 	message, err := c.client.Messages.New(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("Claude API error: %w", err)
+		return nil, fmt.Errorf("claude API error: %w", err)
 	}
 
 	var text string

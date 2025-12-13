@@ -72,7 +72,7 @@ type ConfigResponse struct {
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	_ = json.NewEncoder(w).Encode(data)
 }
 
 func writeError(w http.ResponseWriter, status int, err error) {
@@ -805,7 +805,7 @@ func (h *Handlers) handleStreamRequest(w http.ResponseWriter, r *http.Request, r
 
 	client, err := h.createClient(req.Provider)
 	if err != nil {
-		fmt.Fprintf(w, "data: {\"error\": %q}\n\n", err.Error())
+		_, _ = fmt.Fprintf(w, "data: {\"error\": %q}\n\n", err.Error())
 		flusher.Flush()
 		return
 	}
@@ -828,20 +828,20 @@ func (h *Handlers) handleStreamRequest(w http.ResponseWriter, r *http.Request, r
 
 	err = client.Stream(ctx, llmReq, func(chunk string) error {
 		data, _ := json.Marshal(map[string]string{"text": chunk})
-		fmt.Fprintf(w, "data: %s\n\n", data)
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", data)
 		flusher.Flush()
 		return nil
 	})
 
 	if err != nil {
 		data, _ := json.Marshal(map[string]string{"error": err.Error()})
-		fmt.Fprintf(w, "data: %s\n\n", data)
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", data)
 		flusher.Flush()
 		return
 	}
 
 	// Send done event
-	fmt.Fprintf(w, "data: {\"done\": true}\n\n")
+	_, _ = fmt.Fprintf(w, "data: {\"done\": true}\n\n")
 	flusher.Flush()
 }
 
