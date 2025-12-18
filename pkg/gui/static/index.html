@@ -109,6 +109,14 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400" x-text="currentMenuItem.description"></p>
                     </div>
                     <div class="flex items-center gap-4">
+                        <!-- Recording Indicator -->
+                        <div x-show="isRecording" x-transition class="flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-sm">
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            <span>Recording...</span>
+                            <button @click="stopRecording()" class="ml-1 hover:text-red-800 dark:hover:text-red-300">
+                                <span class="material-icons text-base">close</span>
+                            </button>
+                        </div>
                         <!-- Provider Select -->
                         <select x-model="selectedProvider" title="Select AI Provider" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
                             <template x-for="p in config.availableProviders" :key="p">
@@ -130,7 +138,12 @@
                 <div x-show="currentTab === 'ask'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Question</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Question</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('askInput')" :class="isRecording && recordingTarget === 'askInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'askInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="askInput" placeholder="Ask anything..." class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2 flex gap-2">
                                 <select x-model="askLang" title="Select response language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm">
@@ -169,16 +182,21 @@
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-sm font-medium">Source Text</label>
-                                <select x-model="translateFromLang" title="Select source language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
-                                    <option value="">Auto-detect</option>
-                                    <option value="en">English</option>
-                                    <option value="ja">Japanese</option>
-                                    <option value="zh">Chinese</option>
-                                    <option value="ko">Korean</option>
-                                    <option value="es">Spanish</option>
-                                    <option value="fr">French</option>
-                                    <option value="de">German</option>
-                                </select>
+                                <div class="flex items-center gap-2">
+                                    <button x-show="voiceSupported" @click="toggleVoiceInput('translateInput')" :class="isRecording && recordingTarget === 'translateInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                        <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'translateInput' ? 'stop_circle' : 'mic'"></span>
+                                    </button>
+                                    <select x-model="translateFromLang" title="Select source language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                        <option value="">Auto-detect</option>
+                                        <option value="en">English</option>
+                                        <option value="ja">Japanese</option>
+                                        <option value="zh">Chinese</option>
+                                        <option value="ko">Korean</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                    </select>
+                                </div>
                             </div>
                             <textarea x-model="translateInput" placeholder="Enter text to translate..." class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                         </div>
@@ -218,7 +236,12 @@
                 <div x-show="currentTab === 'summarize'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Text to Summarize</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Text to Summarize</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('summarizeInput')" :class="isRecording && recordingTarget === 'summarizeInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'summarizeInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="summarizeInput" placeholder="Paste your text here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Max Length (words)</label>
@@ -246,7 +269,12 @@
                 <div x-show="currentTab === 'proofread'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Original Text</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Original Text</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('proofreadInput')" :class="isRecording && recordingTarget === 'proofreadInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'proofreadInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="proofreadInput" placeholder="Paste your text to proofread..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Style</label>
@@ -280,7 +308,12 @@
                 <div x-show="currentTab === 'style'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Original Text</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Original Text</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('styleInput')" :class="isRecording && recordingTarget === 'styleInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'styleInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="styleInput" placeholder="Enter text to transform..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Target Style</label>
@@ -316,7 +349,12 @@
                 <div x-show="currentTab === 'explain'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Error Message</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Error Message</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('explainInput')" :class="isRecording && recordingTarget === 'explainInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'explainInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="explainInput" placeholder="Paste your error message here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                         </div>
                         <div class="flex flex-col">
@@ -340,7 +378,12 @@
                 <div x-show="currentTab === 'review'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Code to Review</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Code to Review</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('reviewInput')" :class="isRecording && recordingTarget === 'reviewInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'reviewInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="reviewInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Focus Area</label>
@@ -374,7 +417,12 @@
                 <div x-show="currentTab === 'doc'" class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Code</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Code</label>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('docInput')" :class="isRecording && recordingTarget === 'docInput' ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons text-xl" x-text="isRecording && recordingTarget === 'docInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
+                            </div>
                             <textarea x-model="docInput" placeholder="Paste your code here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                             <div class="mt-2">
                                 <label class="text-xs text-gray-500">Documentation Type</label>
@@ -423,6 +471,9 @@
                         <div class="border-t border-gray-200 dark:border-surface-700 p-4">
                             <div class="flex gap-2">
                                 <textarea x-model="chatInput" @keydown.enter.prevent="if(!$event.shiftKey) submitChat()" placeholder="Type your message... (Shift+Enter for new line)" class="flex-1 bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-4 py-2 resize-none focus:ring-2 focus:ring-primary-500 outline-none" rows="1"></textarea>
+                                <button x-show="voiceSupported" @click="toggleVoiceInput('chatInput')" :class="isRecording && recordingTarget === 'chatInput' ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-gray-200 dark:bg-surface-600 hover:bg-gray-300 dark:hover:bg-surface-500'" class="px-3 rounded-lg transition-colors" title="Voice input">
+                                    <span class="material-icons" :class="isRecording && recordingTarget === 'chatInput' ? 'text-white' : 'text-gray-600 dark:text-gray-300'" x-text="isRecording && recordingTarget === 'chatInput' ? 'stop_circle' : 'mic'"></span>
+                                </button>
                                 <button @click="submitChat()" :disabled="loading || !chatInput" class="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 dark:disabled:bg-surface-600 text-white px-4 rounded-lg transition-colors">
                                     <span class="material-icons">send</span>
                                 </button>

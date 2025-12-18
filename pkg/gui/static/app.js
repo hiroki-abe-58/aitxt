@@ -9,6 +9,12 @@ function app() {
         tokenCount: 0,
         streamOutput: '',
         
+        // Voice input state
+        isRecording: false,
+        recordingTarget: null,
+        speechRecognition: null,
+        voiceSupported: false,
+        
         // Config
         config: {
             provider: 'openai',
@@ -85,11 +91,112 @@ function app() {
                            window.matchMedia('(prefers-color-scheme: dark)').matches;
             this.updateDarkMode();
             
+            // Initialize voice input
+            this.initVoiceInput();
+            
             // Load config
             await this.loadConfig();
             
             // Load settings
             await this.loadProviderSettings();
+        },
+        
+        initVoiceInput() {
+            // Check for browser support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.log('Speech recognition not supported');
+                this.voiceSupported = false;
+                return;
+            }
+            
+            this.voiceSupported = true;
+            this.speechRecognition = new SpeechRecognition();
+            this.speechRecognition.continuous = true;
+            this.speechRecognition.interimResults = true;
+            this.speechRecognition.lang = navigator.language || 'ja-JP';
+            
+            this.speechRecognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (finalTranscript && this.recordingTarget) {
+                    // Append the final transcript to the target input
+                    const currentValue = this[this.recordingTarget] || '';
+                    this[this.recordingTarget] = currentValue + (currentValue ? ' ' : '') + finalTranscript;
+                }
+            };
+            
+            this.speechRecognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    this.error = 'Voice input error: ' + event.error;
+                }
+                this.stopRecording();
+            };
+            
+            this.speechRecognition.onend = () => {
+                // Restart if still recording (for continuous input)
+                if (this.isRecording) {
+                    try {
+                        this.speechRecognition.start();
+                    } catch (e) {
+                        this.stopRecording();
+                    }
+                }
+            };
+        },
+        
+        toggleVoiceInput(targetField) {
+            if (!this.voiceSupported) {
+                this.error = 'Voice input is not supported in this browser. Please use Chrome or Edge.';
+                return;
+            }
+            
+            if (this.isRecording && this.recordingTarget === targetField) {
+                this.stopRecording();
+            } else {
+                this.startRecording(targetField);
+            }
+        },
+        
+        startRecording(targetField) {
+            if (this.isRecording) {
+                this.stopRecording();
+            }
+            
+            this.recordingTarget = targetField;
+            this.isRecording = true;
+            
+            try {
+                this.speechRecognition.start();
+            } catch (e) {
+                console.error('Failed to start recording:', e);
+                this.isRecording = false;
+                this.recordingTarget = null;
+            }
+        },
+        
+        stopRecording() {
+            this.isRecording = false;
+            this.recordingTarget = null;
+            
+            if (this.speechRecognition) {
+                try {
+                    this.speechRecognition.stop();
+                } catch (e) {
+                    // Ignore
+                }
+            }
         },
         
         toggleDarkMode() {
