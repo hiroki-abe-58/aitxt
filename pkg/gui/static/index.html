@@ -117,6 +117,14 @@
                                 <span class="material-icons text-base">close</span>
                             </button>
                         </div>
+                        <!-- Speaking Indicator -->
+                        <div x-show="isSpeaking" x-transition class="flex items-center gap-2 px-3 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-full text-sm">
+                            <span class="material-icons text-base animate-pulse">volume_up</span>
+                            <span>Speaking...</span>
+                            <button @click="stopSpeaking()" class="ml-1 hover:text-primary-800 dark:hover:text-primary-300">
+                                <span class="material-icons text-base">close</span>
+                            </button>
+                        </div>
                         <!-- Provider Select -->
                         <select x-model="selectedProvider" title="Select AI Provider" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none">
                             <template x-for="p in config.availableProviders" :key="p">
@@ -157,7 +165,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Response</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Response</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -203,19 +216,24 @@
                         <div class="flex flex-col">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="text-sm font-medium">Translation</label>
-                                <select x-model="translateToLang" title="Select target language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
-                                    <option value="en">English</option>
-                                    <option value="ja">Japanese</option>
-                                    <option value="zh">Chinese</option>
-                                    <option value="ko">Korean</option>
-                                    <option value="th">Thai</option>
-                                    <option value="es">Spanish</option>
-                                    <option value="fr">French</option>
-                                    <option value="de">German</option>
-                                    <option value="pt">Portuguese</option>
-                                    <option value="ru">Russian</option>
-                                    <option value="vi">Vietnamese</option>
-                                </select>
+                                <div class="flex items-center gap-2">
+                                    <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                        <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                    </button>
+                                    <select x-model="translateToLang" title="Select target language" class="bg-surface-100 dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2 py-1 text-xs">
+                                        <option value="en">English</option>
+                                        <option value="ja">Japanese</option>
+                                        <option value="zh">Chinese</option>
+                                        <option value="ko">Korean</option>
+                                        <option value="th">Thai</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                        <option value="pt">Portuguese</option>
+                                        <option value="ru">Russian</option>
+                                        <option value="vi">Vietnamese</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="flex-1 min-h-[200px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
@@ -249,7 +267,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Summary</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Summary</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -288,7 +311,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Corrected Text</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Corrected Text</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -329,7 +357,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Transformed Text</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Transformed Text</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -358,7 +391,12 @@
                             <textarea x-model="explainInput" placeholder="Paste your error message here..." class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 resize-none focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"></textarea>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Explanation</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Explanation</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -397,7 +435,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Review Results</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Review Results</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -434,7 +477,12 @@
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-2">Generated Documentation</label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-sm font-medium">Generated Documentation</label>
+                                <button x-show="ttsSupported && output && !loading" @click="speakText(output)" :class="isSpeaking ? 'text-primary-500 animate-pulse' : 'text-gray-500 hover:text-primary-500'" class="p-1 rounded-lg transition-colors" title="Read aloud">
+                                    <span class="material-icons text-xl" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                </button>
+                            </div>
                             <div class="flex-1 min-h-[300px] bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg p-4 overflow-auto">
                                 <div x-show="loading" class="flex items-center gap-2 text-gray-500">
                                     <span class="material-icons animate-spin">autorenew</span>
@@ -456,8 +504,11 @@
                         <!-- Chat Messages -->
                         <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chatMessages">
                             <template x-for="(msg, index) in chatHistory" :key="index">
-                                <div :class="msg.role === 'user' ? 'ml-auto bg-primary-500 text-white' : 'mr-auto bg-gray-100 dark:bg-surface-700'" class="max-w-[80%] rounded-lg p-3">
+                                <div :class="msg.role === 'user' ? 'ml-auto bg-primary-500 text-white' : 'mr-auto bg-gray-100 dark:bg-surface-700'" class="max-w-[80%] rounded-lg p-3 group relative">
                                     <pre class="whitespace-pre-wrap font-sans text-sm" x-text="msg.content"></pre>
+                                    <button x-show="ttsSupported && msg.role === 'assistant'" @click="speakText(msg.content)" :class="isSpeaking ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'" class="absolute -bottom-2 -right-2 p-1 bg-white dark:bg-surface-600 rounded-full shadow-md transition-opacity" title="Read aloud">
+                                        <span class="material-icons text-sm text-gray-500 dark:text-gray-300" x-text="isSpeaking ? 'stop_circle' : 'volume_up'"></span>
+                                    </button>
                                 </div>
                             </template>
                             <div x-show="loading" class="mr-auto bg-gray-100 dark:bg-surface-700 rounded-lg p-3">

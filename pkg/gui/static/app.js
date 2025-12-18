@@ -15,6 +15,13 @@ function app() {
         speechRecognition: null,
         voiceSupported: false,
         
+        // Text-to-speech state
+        isSpeaking: false,
+        speechSynthesis: null,
+        ttsSupported: false,
+        ttsVoices: [],
+        selectedVoice: null,
+        
         // Config
         config: {
             provider: 'openai',
@@ -93,6 +100,9 @@ function app() {
             
             // Initialize voice input
             this.initVoiceInput();
+            
+            // Initialize text-to-speech
+            this.initTextToSpeech();
             
             // Load config
             await this.loadConfig();
@@ -197,6 +207,77 @@ function app() {
                     // Ignore
                 }
             }
+        },
+        
+        initTextToSpeech() {
+            if (!window.speechSynthesis) {
+                console.log('Text-to-speech not supported');
+                this.ttsSupported = false;
+                return;
+            }
+            
+            this.ttsSupported = true;
+            this.speechSynthesis = window.speechSynthesis;
+            
+            // Load voices
+            const loadVoices = () => {
+                this.ttsVoices = this.speechSynthesis.getVoices();
+                // Try to find a voice matching the browser language
+                const browserLang = navigator.language || 'en-US';
+                this.selectedVoice = this.ttsVoices.find(v => v.lang.startsWith(browserLang.split('-')[0])) 
+                                   || this.ttsVoices.find(v => v.default)
+                                   || this.ttsVoices[0];
+            };
+            
+            // Voices might be loaded asynchronously
+            loadVoices();
+            if (this.speechSynthesis.onvoiceschanged !== undefined) {
+                this.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        },
+        
+        speakText(text) {
+            if (!this.ttsSupported || !text) {
+                return;
+            }
+            
+            // Stop any current speech
+            if (this.isSpeaking) {
+                this.stopSpeaking();
+                return;
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            if (this.selectedVoice) {
+                utterance.voice = this.selectedVoice;
+            }
+            
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            utterance.onstart = () => {
+                this.isSpeaking = true;
+            };
+            
+            utterance.onend = () => {
+                this.isSpeaking = false;
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event.error);
+                this.isSpeaking = false;
+            };
+            
+            this.speechSynthesis.speak(utterance);
+        },
+        
+        stopSpeaking() {
+            if (this.speechSynthesis) {
+                this.speechSynthesis.cancel();
+            }
+            this.isSpeaking = false;
         },
         
         toggleDarkMode() {
